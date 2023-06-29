@@ -259,7 +259,7 @@ def get_sensitivity_and_specificity(result_array, target_array):
 
 
 
-def get_LesionWiseResults(pred_file, gt_file):
+def get_LesionWiseResults(pred_file, gt_file, output=None):
     """
     Computes the Lesion-wise scores for pair of prediction and ground truth
     segmentations
@@ -331,11 +331,6 @@ def get_LesionWiseResults(pred_file, gt_file):
     results_df['Labels'] = results_df.index
     results_df = results_df.reset_index(drop=True)
     results_df.insert(0, 'Labels', results_df.pop('Labels'))
-
-    
-    results_df.to_csv(
-                    os.path.split(pred_file)[0] + '/' +
-                    os.path.split(pred_file)[1].split('.')[0] + 
-                    '_results.csv', index=False)
-    
-
+    if output:
+        results_df.to_csv(output, index=False)
+    return results_df
