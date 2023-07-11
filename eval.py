@@ -109,7 +109,7 @@ def get_GTseg_combinedByDilation(gt_dilated_cc_mat, gt_label_cc):
     return gt_seg_combinedByDilation_mat
 
 
-def get_LesionWiseScores(prediction_seg, gt_seg, label_value):
+def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
     """
     Computes the Lesion-wise scores for pair of prediction and ground truth
     segmentations
@@ -119,6 +119,7 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value):
     prediction_seg: str; location of the prediction segmentation    
     gt_label_cc: str; location of the gt segmentation
     label_value: str; Can be WT, ET or TC
+    dil_factor: int; Used to perform dilation
 
     Output
     ======
@@ -157,6 +158,12 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value):
                 gt_mat
             )
     
+    ## Get HD95 sccre for the full image
+    full_sd = surface_distance.compute_surface_distances(gt_mat.astype(int), 
+                                                         pred_mat.astype(int), 
+                                                         (sx,sy,sz))
+    full_hd95 = surface_distance.compute_robust_hausdorff(full_sd, 95)
+    
     ## Get Sensitivity and Specificity
     full_sens, full_specs = get_sensitivity_and_specificity(result_array = pred_mat, 
                                                             target_array = gt_mat)
@@ -172,7 +179,7 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value):
     gt_mat_cc = cc3d.connected_components(gt_mat, connectivity=26)
     pred_mat_cc = cc3d.connected_components(pred_mat, connectivity=26)
 
-    gt_mat_dilation = scipy.ndimage.binary_dilation(gt_mat, structure = dilation_struct, iterations=1)
+    gt_mat_dilation = scipy.ndimage.binary_dilation(gt_mat, structure = dilation_struct, iterations = dil_factor)
     gt_mat_dilation_cc = cc3d.connected_components(gt_mat_dilation, connectivity=26)
 
     gt_mat_combinedByDilation = get_GTseg_combinedByDilation(
@@ -233,10 +240,18 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value):
             pred_label_cc[np.isin(
                 pred_label_cc,tp+[0],invert=True)])
     
-    return tp, fn, fp, gt_tp, metric_pairs, full_dice, full_gt_vol, full_pred_vol, full_sens, full_specs
+    return tp, fn, fp, gt_tp, metric_pairs, full_dice, full_hd95, full_gt_vol, full_pred_vol, full_sens, full_specs
 
 
 def get_sensitivity_and_specificity(result_array, target_array):
+    """
+    This function is extracted from GaNDLF from mlcommons
+
+    You can find the documentation here - 
+
+    https://github.com/mlcommons/GaNDLF/blob/master/GANDLF/metrics/segmentation.py#L196
+
+    """
     iC = np.sum(result_array)
     rC = np.sum(target_array)
 
@@ -259,7 +274,7 @@ def get_sensitivity_and_specificity(result_array, target_array):
 
 
 
-def get_LesionWiseResults(pred_file, gt_file, output=None):
+def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
     """
     Computes the Lesion-wise scores for pair of prediction and ground truth
     segmentations
@@ -268,21 +283,37 @@ def get_LesionWiseResults(pred_file, gt_file, output=None):
     ==========
     pred_file: str; location of the prediction segmentation    
     gt_file: str; location of the gt segmentation
+    challenge_name: str; name of the challenge for parameters
+
 
     Output
     ======
     Saves the performance metrics as CSVs
+    results_df: pd.DataFrame; lesion-wise results with other metrics
     """
     
+    ## Dilation and Threshold Parameters
+    if challenge_name == 'GLI':
+        dilation_factor = 3
+        lesion_volume_thresh = 50
+    elif challenge_name == 'SSA':
+        dilation_factor = 3
+        lesion_volume_thresh = 50
+    elif challenge_name == 'MEN':
+        dilation_factor = 1
+        lesion_volume_thresh = 50
+        
+
     final_lesionwise_metrics_df = pd.DataFrame()
     final_metrics_dict = dict()
     label_values = ['WT', 'TC', 'ET']
 
     for l in range(len(label_values)):
-        tp, fn, fp, gt_tp, metric_pairs, full_dice, full_gt_vol, full_pred_vol, full_sens, full_specs = get_LesionWiseScores(
+        tp, fn, fp, gt_tp, metric_pairs, full_dice, full_hd95, full_gt_vol, full_pred_vol, full_sens, full_specs = get_LesionWiseScores(
                                                             prediction_seg = pred_file,
                                                             gt_seg = gt_file,
-                                                            label_value = label_values[l]
+                                                            label_value = label_values[l],
+                                                            dil_factor = dilation_factor
                                                         )
         
         metric_df = pd.DataFrame(
@@ -294,26 +325,27 @@ def get_LesionWiseResults(pred_file, gt_file, output=None):
         metric_df = metric_df.replace(np.inf, 374)
 
         final_lesionwise_metrics_df = final_lesionwise_metrics_df.append(metric_df)
-        metric_df_thresh5 = metric_df[metric_df['gt_lesion_vol'] > 5]
+        metric_df_thresh = metric_df[metric_df['gt_lesion_vol'] > lesion_volume_thresh]
 
         try:
-            lesion_wise_dice = np.sum(metric_df_thresh5['dice_lesionwise'])/(len(metric_df_thresh5) + len(fp))
+            lesion_wise_dice = np.sum(metric_df_thresh['dice_lesionwise'])/(len(metric_df_thresh) + len(fp))
         except:
             lesion_wise_dice = np.nan
             
         try:
-            lesion_wise_hd95 = (np.sum(metric_df_thresh5['hd95_lesionwise']) + len(fp)*374)/(len(metric_df_thresh5) + len(fp))
+            lesion_wise_hd95 = (np.sum(metric_df_thresh['hd95_lesionwise']) + len(fp)*374)/(len(metric_df_thresh) + len(fp))
         except:
             lesion_wise_hd95 = np.nan
 
         metrics_dict = {
-            'Num_GT_TP' : len(gt_tp),
-            'Num_TP' : len(tp),
+            'Num_TP' : len(gt_tp), # GT_TP
+            #'Num_TP' : len(tp),
             'Num_FP' : len(fp),
             'Num_FN' : len(fn),
             'Sensitivity': full_sens,
             'Specificity': full_specs,
-            'Complete_Dice' : full_dice,
+            'Legacy_Dice' : full_dice,
+            'Legacy_HD95' : full_hd95,
             'GT_Complete_Volume' : full_gt_vol,
             'LesionWise_Score_Dice' : lesion_wise_dice,
             'LesionWise_Score_HD95' : lesion_wise_hd95
@@ -333,4 +365,5 @@ def get_LesionWiseResults(pred_file, gt_file, output=None):
     results_df.insert(0, 'Labels', results_df.pop('Labels'))
     if output:
         results_df.to_csv(output, index=False)
+    
     return results_df
