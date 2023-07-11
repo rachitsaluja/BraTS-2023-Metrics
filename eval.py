@@ -363,6 +363,8 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
     results_df['Labels'] = results_df.index
     results_df = results_df.reset_index(drop=True)
     results_df.insert(0, 'Labels', results_df.pop('Labels'))
+    results_df.replace(np.inf, 374)
+    
     if output:
         results_df.to_csv(output, index=False)
     
