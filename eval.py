@@ -293,13 +293,13 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
     """
     
     ## Dilation and Threshold Parameters
-    if challenge_name == 'GLI':
+    if challenge_name == 'BraTS-GLI':
         dilation_factor = 3
         lesion_volume_thresh = 50
-    elif challenge_name == 'SSA':
+    elif challenge_name == 'BraTS-SSA':
         dilation_factor = 3
         lesion_volume_thresh = 50
-    elif challenge_name == 'MEN':
+    elif challenge_name == 'BraTS-MEN':
         dilation_factor = 1
         lesion_volume_thresh = 50
         
