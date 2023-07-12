@@ -333,12 +333,12 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
         try:
             lesion_wise_dice = np.sum(metric_df_thresh['dice_lesionwise'])/(len(metric_df_thresh) + len(fp))
         except:
-            lesion_wise_dice = np.nan
+            lesion_wise_dice = 0
             
         try:
             lesion_wise_hd95 = (np.sum(metric_df_thresh['hd95_lesionwise']) + len(fp)*374)/(len(metric_df_thresh) + len(fp))
         except:
-            lesion_wise_hd95 = np.nan
+            lesion_wise_hd95 = 374
 
         metrics_dict = {
             'Num_TP' : len(gt_tp), # GT_TP
