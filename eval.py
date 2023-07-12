@@ -30,7 +30,7 @@ def dice(im1, im2):
     # Compute Dice coefficient
     intersection = np.logical_and(im1, im2)
 
-    return 2. * intersection.sum() / (im1.sum() + im2.sum())
+    return 2. * (intersection.sum() + sys.float_info.min) / (im1.sum() + im2.sum() + sys.float_info.min)
 
 def get_TissueWiseSeg(prediction_matrix, gt_matrix, tissue_type):
     """
