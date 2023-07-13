@@ -349,7 +349,7 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
             lesion_wise_dice = 1
 
         if math.isnan(lesion_wise_hd95):
-            lesion_wise_hd95 = 374
+            lesion_wise_hd95 = 0
         
         metrics_dict = {
             'Num_TP' : len(gt_tp), # GT_TP
