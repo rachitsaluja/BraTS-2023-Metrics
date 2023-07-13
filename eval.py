@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import surface_distance
 import sys
+import math
 
 def dice(im1, im2):
     """
@@ -30,7 +31,7 @@ def dice(im1, im2):
     # Compute Dice coefficient
     intersection = np.logical_and(im1, im2)
 
-    return 2. * (intersection.sum() + sys.float_info.min) / (im1.sum() + im2.sum() + sys.float_info.min)
+    return 2. * (intersection.sum()) / (im1.sum() + im2.sum())
 
 def get_TissueWiseSeg(prediction_matrix, gt_matrix, tissue_type):
     """
@@ -157,11 +158,15 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
                 pred_mat, 
                 gt_mat
             )
+
+    if math.isnan(full_dice):
+        full_dice = 1.0
     
     ## Get HD95 sccre for the full image
     full_sd = surface_distance.compute_surface_distances(gt_mat.astype(int), 
                                                          pred_mat.astype(int), 
                                                          (sx,sy,sz))
+    
     full_hd95 = surface_distance.compute_robust_hausdorff(full_sd, 95)
     
     ## Get Sensitivity and Specificity
@@ -340,6 +345,12 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
         except:
             lesion_wise_hd95 = np.nan
 
+        if math.isnan(lesion_wise_dice):
+            lesion_wise_dice = 1
+
+        if math.isnan(lesion_wise_hd95):
+            lesion_wise_hd95 = 374
+        
         metrics_dict = {
             'Num_TP' : len(gt_tp), # GT_TP
             #'Num_TP' : len(tp),
