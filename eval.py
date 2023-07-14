@@ -195,6 +195,16 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
                                                             gt_label_cc = gt_mat_cc
                                                         )
     
+    #nib.save(nib.Nifti1Image(gt_mat_dilation_cc,
+    #                         gt_nii.affine), './gt_dilation_' + label_value + '_cc.nii.gz')
+
+    #nib.save(nib.Nifti1Image(gt_mat_combinedByDilation,
+    #                         gt_nii.affine), './gt_' + label_value + '_cc.nii.gz')
+    
+    #nib.save(nib.Nifti1Image(pred_mat_cc,
+    #                         gt_nii.affine), './pred_' + label_value + '_cc.nii.gz')
+    
+    
     ## Performing the Lesion-By-Lesion Comparison
 
     gt_label_cc = gt_mat_combinedByDilation
@@ -213,12 +223,16 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
         gt_tmp = np.zeros_like(gt_label_cc)
         gt_tmp[gt_label_cc == gtcomp] = 1
 
+        ## Extracting ROI GT lesion component
+        gt_tmp_dilation = scipy.ndimage.binary_dilation(gt_tmp, structure = dilation_struct, iterations = dil_factor)
+
         # Volume of lesion
-        gt_vol = np.sum(gt_tmp)*sx*sy*sz
+        gt_vol = np.sum(gt_tmp)*sx*sy*sz 
         
         ## Extracting Predicted true positive lesions
         pred_tmp = np.copy(pred_label_cc)
-        pred_tmp = pred_tmp*gt_tmp
+        #pred_tmp = pred_tmp*gt_tmp
+        pred_tmp = pred_tmp*gt_tmp_dilation
         intersecting_cc = np.unique(pred_tmp) 
         intersecting_cc = intersecting_cc[intersecting_cc != 0] 
         for cc in intersecting_cc:
@@ -336,7 +350,7 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
 
         final_lesionwise_metrics_df = final_lesionwise_metrics_df.append(metric_df)
         metric_df_thresh = metric_df[metric_df['gt_lesion_vol'] > lesion_volume_thresh]
-
+        
         try:
             lesion_wise_dice = np.sum(metric_df_thresh['dice_lesionwise'])/(len(metric_df_thresh) + len(fp))
         except:
@@ -374,6 +388,7 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
     #                                   os.path.split(pred_file)[1].split('.')[0] + 
     #                                   '_lesionwise_metrics.csv',
     #                                   index=False)
+    
     
     results_df = pd.DataFrame(final_metrics_dict).T
     results_df['Labels'] = results_df.index
