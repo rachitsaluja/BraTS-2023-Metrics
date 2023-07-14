@@ -195,16 +195,6 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
                                                             gt_label_cc = gt_mat_cc
                                                         )
     
-    #nib.save(nib.Nifti1Image(gt_mat_dilation_cc,
-    #                         gt_nii.affine), './gt_dilation_' + label_value + '_cc.nii.gz')
-
-    #nib.save(nib.Nifti1Image(gt_mat_combinedByDilation,
-    #                         gt_nii.affine), './gt_' + label_value + '_cc.nii.gz')
-    
-    #nib.save(nib.Nifti1Image(pred_mat_cc,
-    #                         gt_nii.affine), './pred_' + label_value + '_cc.nii.gz')
-    
-    
     ## Performing the Lesion-By-Lesion Comparison
 
     gt_label_cc = gt_mat_combinedByDilation
@@ -345,6 +335,19 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
                                    'gt_lesion_vol', 'dice_lesionwise', 'hd95_lesionwise']
                 ).sort_values(by = ['gt_lesion_numbers'], ascending=True).reset_index(drop = True)
         
+        metric_df['_len'] = metric_df['predicted_lesion_numbers'].map(len)
+
+        ## Removing <= 50 lesions from analysis
+        fn_sub = (metric_df[(metric_df['_len'] == 0) &
+                  (metric_df['gt_lesion_vol'] <= 50)
+                  ]).shape[0]
+        
+        
+        gt_tp_sub = (metric_df[(metric_df['_len'] != 0) & 
+            (metric_df['gt_lesion_vol'] <= 50)
+            ]).shape[0]
+        
+        
         metric_df['Label'] = [label_values[l]]*len(metric_df)
         metric_df = metric_df.replace(np.inf, 374)
 
@@ -368,10 +371,10 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
             lesion_wise_hd95 = 0
         
         metrics_dict = {
-            'Num_TP' : len(gt_tp), # GT_TP
+            'Num_TP' : len(gt_tp) - gt_tp_sub, # GT_TP
             #'Num_TP' : len(tp),
             'Num_FP' : len(fp),
-            'Num_FN' : len(fn),
+            'Num_FN' : len(fn) - fn_sub,
             'Sensitivity': full_sens,
             'Specificity': full_specs,
             'Legacy_Dice' : full_dice,
