@@ -154,7 +154,7 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
                             )
     
     ## Get Dice score for the full image
-    if np.all(gt_mat==0):
+    if np.all(gt_mat==0) and np.all(pred_mat==0):
         full_dice = 1.0
     else:
         full_dice = dice(
@@ -164,7 +164,7 @@ def get_LesionWiseScores(prediction_seg, gt_seg, label_value, dil_factor):
     
     ## Get HD95 sccre for the full image
     
-    if np.all(gt_mat==0):
+    if np.all(gt_mat==0) and np.all(pred_mat==0):
         full_hd95 = 0.0
     else:
         full_sd = surface_distance.compute_surface_distances(gt_mat.astype(int), 
