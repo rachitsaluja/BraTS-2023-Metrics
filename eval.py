@@ -316,6 +316,9 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
     elif challenge_name == 'BraTS-PED':
         dilation_factor = 3
         lesion_volume_thresh = 50
+    elif challenge_name == 'BraTS-MET':
+        dilation_factor = 1
+        lesion_volume_thresh = 2       
         
 
     final_lesionwise_metrics_df = pd.DataFrame()
