@@ -342,12 +342,12 @@ def get_LesionWiseResults(pred_file, gt_file, challenge_name, output=None):
 
         ## Removing <= 50 lesions from analysis
         fn_sub = (metric_df[(metric_df['_len'] == 0) &
-                  (metric_df['gt_lesion_vol'] <= 50)
+                  (metric_df['gt_lesion_vol'] <= lesion_volume_thresh)
                   ]).shape[0]
         
         
         gt_tp_sub = (metric_df[(metric_df['_len'] != 0) & 
-            (metric_df['gt_lesion_vol'] <= 50)
+            (metric_df['gt_lesion_vol'] <= lesion_volume_thresh)
             ]).shape[0]
         
         
