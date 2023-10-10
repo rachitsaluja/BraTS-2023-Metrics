@@ -1,5 +1,7 @@
 # BraTS 2023 Lesion-Wise Performance Metrics Evaluation
 
+## Outline
+
 Thank you all for participating in this year's BraTS Challenge. 
 
 This year we are introducing 2 new performance metrics called lesion-wise dice score and lesion-wise Hausdorff distance-95 (HD95). This is mainly developed to understand the performance of a model at a lesion level and not at an image level. By evaluating models lesion-by-lesion we can understand how well models catch and segment abnormalities, and doesn't bias the results in favor of models that capture only large lesions. 
@@ -12,7 +14,11 @@ Below is an outline of how we perform this analysis -
 4.  We calculate dice scores and HD95 scores for each lesion (or component) individually and we penalize all the False Positives and the False Negatives with a 0 score. Then, we take the mean for the particular CaseID.
 5.  Each challenge leader has set a volumetric threshold, below which participants' models won't be evaluated for those "small/false" lesions.
 
-README is under construction ...
+## Intuition 
+
+## Methodology
+
+## Example
 
 If you have any issues, please raise an issue. 
  
