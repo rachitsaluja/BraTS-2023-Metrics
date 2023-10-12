@@ -1,5 +1,8 @@
 # BraTS 2023 Lesion-Wise Performance Metrics for Segmentation Challenges
 
+![Seg_model](figs/BraTS_banner.png)
+
+
 ## Outline
 
 Thank you all for participating in this year's BraTS Challenge. 
