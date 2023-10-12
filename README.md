@@ -30,7 +30,7 @@ Now, let’s analyze the predicted segmentation against the ground truth further
 So, what we really want to emphasize here is that 
 1. We want to penalize models that miss lesions all together since they could be clinically crucial.
 2. We also want to penalize the model if it produces false positive lesions, because the legacy dice score don’t cater to that problem.
-3. An important thing to note is that legacy dice scores tend to higher for larger lesions, hence, could produce inflated dice scores, while missing lesions.
+3. An important thing to note is that legacy dice scores tend to higher for larger lesions, hence, could produce inflated dice scores, while missing lesions.
 4. HD95 don’t produce meaningful insights in a multi-lesion setting.
 
 
