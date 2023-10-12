@@ -1,4 +1,4 @@
-# BraTS 2023 Lesion-Wise Performance Metrics Evaluation
+# BraTS 2023 Lesion-Wise Performance Metrics for Segmentation Challenges
 
 ## Outline
 
@@ -13,12 +13,4 @@ Below is an outline of how we perform this analysis -
 3.  We perform connected component analysis on the Prediction label and compare it component by component to the GT label.
 4.  We calculate dice scores and HD95 scores for each lesion (or component) individually and we penalize all the False Positives and the False Negatives with a 0 score. Then, we take the mean for the particular CaseID.
 5.  Each challenge leader has set a volumetric threshold, below which participants' models won't be evaluated for those "small/false" lesions.
-
-## Intuition 
-
-## Methodology
-
-## Example
-
-If you have any issues, please raise an issue. 
  
