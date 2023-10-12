@@ -48,9 +48,29 @@ We see here that the 2 components on the upper right side really belong to just 
 
 To formalize the mathematical formula. It is basically summation of dice and HD95 divided by sum of the number of TP; FP and FN. Same is done for HD95, Here L is the number of GT lesions that we calculate after dilation.
 
-$$ \text{Lesion-wise Dice Score} = \frac{ \textstyle \sum_{i}^{L} Dice(l_i)}{TP + FN + FP}$$
+<p align="center">
+  <img src="figs/BraTS_formula.png">
+</p>
 
-$$ \text{Lesion-wise HD95} = \frac{ \textstyle \sum_{i}^{L} HD_{95}(l_i)}{TP + FN + FP}$$
+Each challenge has set a volumetric threshold, below which participants' models won't be evaluated for those "small/false" lesions. This is done mainly so that participants are not penalized for stray voxels in the GT masks which could be caused due to human error, or small lesions that aren’t related to the pathology pertaining to the challenge. This threshold has been decided by Clinical Radiologist after they reviewed all the segmentation datasets. Here we have the table for the Threshold parameters. These radiologists also decide the Dilation factor which in same way for combing lesions in the GT masks.
+
+![ThreshDil](figs/BraTS_ThreshDil.png)
+
+## Acknowledgements 
+
+This project couldn't have been done without the help of 
+1. [Verena Chung](https://github.com/vpchung)
+2. [Hasan Kassem](https://github.com/hasan7n)
+3. [Spyros Bakas](https://medicine.iu.edu/faculty/64865/bakas-spyridon)
+4. [Ujjwal Baid](https://medicine.iu.edu/faculty/65156/baid-ujjwal)
+5. [Jeff Rudie](https://www.jeffrudie.com/)
+
+
+These metrics have been integrated to the Synapse Platform by [Verena Chung](https://github.com/vpchung). [Code](https://github.com/Sage-Bionetworks-Challenges/brats2023)
+
+Arxiv paper to follow...
+
+
 
 
 
