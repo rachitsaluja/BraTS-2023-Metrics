@@ -33,6 +33,27 @@ So, what we really want to emphasize here is that
 3. An important thing to note is that legacy dice scores tend to higher for larger lesions, hence, could produce inflated dice scores, while missing lesions.
 4. HD95 don’t produce meaningful insights in a multi-lesion setting.
 
+## Methodology
+
+On the left we have the ground truth and on the right we have the predictions. We perform a connected component analysis on the prediction mask and compare it component by component to the GT mask after combing lesions by dilation.
+Now we compare each component one-by-one, and we see here that the model has missed 2 lesions below and has produced a false positive. It has produced one lesion that overlaps with the true lesion from the ground truth mask, so we calculate metrics for that. 
+
+![LesionWise](figs/BraTS_lesionWiseComp.png)
+
+To ensure we get the right number of GT lesions we first perform a dilation on the GT mask, we combine the components that exists within the region of interest of the Dilated Component. The way we do that is we perform a 26-connectivity 3D connected component on the Dilated Mask as well, and use that to combine lesions within that ROI. So, on the left here we have the 4 components in Enhancing tissue,  On the right we have the dilated Ground truth Enhancing tissue. Now, to get the right number of ground truth lesions we combine these two and see if multiple components fall into a single Dilated ROI.
+
+We see here that the 2 components on the upper right side really belong to just one lesion, so we count that as one lesion for our analysis hence yielding a total of 3 lesions instead of 4. in the Enhancing Tissue. We use this as the ground truth for our comparison against the model predictions. 
+
+![LesionCombine](figs/BraTS_lesionCombine.png)
+
+To formalize the mathematical formula. It is basically summation of dice and HD95 divided by sum of the number of TP; FP and FN. Same is done for HD95, Here L is the number of GT lesions that we calculate after dilation.
+
+$$ \text{Lesion-wise Dice Score} = \frac{ \textstyle \sum_{i}^{L} Dice(l_i)}{TP + FN + FP}$$
+
+$$ \text{Lesion-wise HD95} = \frac{ \textstyle \sum_{i}^{L} HD_{95}(l_i)}{TP + FN + FP}$$
+
+
+
 
 
 
