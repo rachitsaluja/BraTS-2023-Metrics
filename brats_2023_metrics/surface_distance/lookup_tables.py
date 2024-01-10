@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Lookup tables used by surface distance metrics."""
 
 # neighbour_code_to_normals is a lookup table.
 # For every binary neighbour code
@@ -23,6 +22,9 @@
 # created using the marching_cube algorithm
 # see e.g. https://en.wikipedia.org/wiki/Marching_cubes
 # pylint: disable=line-too-long
+
+"""Lookup tables used by surface distance metrics."""
+
 neighbour_code_to_normals = [
     [[0, 0, 0]],
     [[0.125, 0.125, 0.125]],
@@ -279,5 +281,6 @@ neighbour_code_to_normals = [
     [[-0.25, -0.25, 0.0], [0.25, 0.25, -0.0]],
     [[-0.125, -0.125, 0.125]],
     [[0.125, 0.125, 0.125]],
-    [[0, 0, 0]]]
+    [[0, 0, 0]],
+]
 # pylint: enable=line-too-long
