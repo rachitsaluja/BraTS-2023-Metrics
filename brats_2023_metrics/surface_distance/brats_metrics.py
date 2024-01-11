@@ -43,7 +43,7 @@ def get_challenge_parameters(challenge_name: str) -> (int, int):
 
     if challenge_name == 'BraTS-MET':
         dilation_factor = 1
-        lesion_volume_thresh = 2
+        lesion_volume_thresh = 0
         return dilation_factor, lesion_volume_thresh
 
     raise ValueError('Supported challenge names are: BraTS-GLI, BraTS-SSA, BraTS-MEN, BraTS-PED, BraTS-MET')
@@ -168,9 +168,13 @@ def get_lesion_wise_score(pred_file_path: str, gt_file_path: str, label_name: st
         full_sd = surface_distance.compute_surface_distances(gt_array.astype(int), pred_array.astype(int), (sx, sy, sz))
         score_store['full_hd95'] = surface_distance.compute_robust_hausdorff(full_sd, 95)
 
-    score_store['full_sensitivity'], score_store['full_specificity'] = get_sensitivity_and_specificity(
-        pred_array=pred_array, gt_array=gt_array
-    )
+    results = get_tpr_tnr_ppv_voxel_wise(pred_array=pred_array, gt_array=gt_array)
+    (
+        score_store['sensitivity_voxel_wise'],
+        score_store['specificity_voxel_wise'],
+        score_store['precision_voxel_wise'],
+    ) = results
+
     score_store['full_gt_volume'] = np.sum(gt_array) * sx * sy * sz
     score_store['full_pred_volume'] = np.sum(pred_array) * sx * sy * sz
 
@@ -233,7 +237,7 @@ def get_lesion_wise_score(pred_file_path: str, gt_file_path: str, label_name: st
     return score_store
 
 
-def get_sensitivity_and_specificity(pred_array: np.array, gt_array: np.array) -> (float, float):
+def get_tpr_tnr_ppv_voxel_wise(pred_array: np.array, gt_array: np.array) -> (float, float, float):
     """This function is extracted from GaNDLF from mlcommons
     https://github.com/mlcommons/GaNDLF/blob/master/GANDLF/metrics/segmentation.py#L196
 
@@ -244,24 +248,26 @@ def get_sensitivity_and_specificity(pred_array: np.array, gt_array: np.array) ->
     Returns:
         sensitivity (float): Sensitivity score
         specificity (float): Specificity score
+        precision (float): Precision score
     """
-    pred_count = np.sum(pred_array)
-    gt_count = np.sum(gt_array)
+    pred_count = int(np.sum(pred_array))
+    gt_count = int(np.sum(gt_array))
 
     overlap = np.where((pred_array == gt_array), 1, 0)  # Where they agree are both equal to that value
 
-    tp = overlap[pred_array == 1].sum()
+    tp = int(overlap[pred_array == 1].sum())
     fp = pred_count - tp
     fn = gt_count - tp
     tn = np.count_nonzero((pred_array != 1) & (gt_array != 1))
 
-    sensitivity = 1.0 * tp / (tp + fn + np.finfo(float).eps)
-    specificity = 1.0 * tn / (tn + fp + np.finfo(float).eps)
+    sensitivity = tp / (tp + fn + np.finfo(float).eps)
+    specificity = tn / (tn + fp + np.finfo(float).eps)
+    precision = tp / (tp + fp + np.finfo(float).eps)
 
     if (pred_count == 0) and (gt_count == 0):  # Make Changes if both input and reference are 0 for the tissue type
         sensitivity = 1.0
 
-    return sensitivity, specificity
+    return sensitivity, specificity, precision
 
 
 def get_lesion_wise_results(
@@ -308,7 +314,7 @@ def get_lesion_wise_results(
 
         metric_df['_len'] = metric_df['predicted_lesion_numbers'].map(len)
 
-        # Removing <= 50 lesions from analysis
+        # Removing lesions with below threshold volume
         fn_sub = (metric_df[(metric_df['_len'] == 0) & (metric_df['gt_lesion_vol'] <= lesion_volume_thresh)]).shape[0]
 
         gt_tp_sub = (metric_df[(metric_df['_len'] != 0) & (metric_df['gt_lesion_vol'] <= lesion_volume_thresh)]).shape[
@@ -340,12 +346,22 @@ def get_lesion_wise_results(
         if math.isnan(lesion_wise_hd95):
             lesion_wise_hd95 = 0
 
+        tp_lesion_wise = len(score_store['tp']) - gt_tp_sub
+        fp_lesion_wise = len(score_store['fp'])
+        fn_lesion_wise = len(score_store['fn']) - fn_sub
+
+        sensitivity_lesion_wise = tp_lesion_wise / (tp_lesion_wise + fn_lesion_wise + np.finfo(float).eps)
+        precision_lesion_wise = tp_lesion_wise / (tp_lesion_wise + fp_lesion_wise + np.finfo(float).eps)
+
         metrics_dict = {
             'Num_TP': len(score_store['gt_tp']) - gt_tp_sub,  # GT_TP
             'Num_FP': len(score_store['fp']),
             'Num_FN': len(score_store['fn']) - fn_sub,
-            'Sensitivity': score_store['full_sensitivity'],
-            'Specificity': score_store['full_specificity'],
+            'Sensitive_Lesion_Wise': sensitivity_lesion_wise,
+            'Precision_Lesion_Wise': precision_lesion_wise,
+            'Sensitivity_Voxel_Wise': score_store['sensitivity_voxel_wise'],
+            'Specificity_Voxel_Wise': score_store['specificity_voxel_wise'],
+            'Precision_Voxel_Wise': score_store['precision_voxel_wise'],
             'Legacy_Dice': score_store['full_dice'],
             'Legacy_HD95': score_store['full_hd95'],
             'GT_Complete_Volume': score_store['full_gt_volume'],
