@@ -83,17 +83,17 @@ def get_tissue_wise_mask(array: np.array, tissue_type: str) -> np.array:
     """
 
     if tissue_type == 'WT':
-        np.place(array, (array != 1) & (array != 2) & (array != 3), 0)
+        np.place(array, (array != 1) & (array != 2), 0)
         np.place(array, (array > 0), 1)
         return array
 
     if tissue_type == 'TC':
-        np.place(array, (array != 1) & (array != 3), 0)
+        np.place(array, (array != 2), 0)
         np.place(array, (array > 0), 1)
         return array
 
     if tissue_type == 'ET':
-        np.place(array, (array != 3), 0)
+        np.place(array, (array != 1), 0)
         np.place(array, (array > 0), 1)
         return array
 
@@ -357,7 +357,7 @@ def get_lesion_wise_results(
             'Num_TP': len(score_store['gt_tp']) - gt_tp_sub,  # GT_TP
             'Num_FP': len(score_store['fp']),
             'Num_FN': len(score_store['fn']) - fn_sub,
-            'Sensitive_Lesion_Wise': sensitivity_lesion_wise,
+            'Sensitivity_Lesion_Wise': sensitivity_lesion_wise,
             'Precision_Lesion_Wise': precision_lesion_wise,
             'Sensitivity_Voxel_Wise': score_store['sensitivity_voxel_wise'],
             'Specificity_Voxel_Wise': score_store['specificity_voxel_wise'],
