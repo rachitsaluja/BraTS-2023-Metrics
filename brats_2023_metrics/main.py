@@ -2,13 +2,13 @@ import os
 
 from brats_2023_metrics.surface_distance.brats_metrics import get_lesion_wise_results
 
-# Example 1: Get lesion-wise results for a single case
-get_lesion_wise_results(
-    pred_file_path='',  # Path to the prediction file
-    gt_file_path='',  # Path to the ground truth file
-    challenge_name='',  # BraTS-GLI, BraTS-SSA, BraTS-MEN, BraTS-PED, BraTS-MET
-    output_path='',  # Path to save the results
-)
+# # Example 1: Get lesion-wise results for a single case
+# get_lesion_wise_results(
+#     pred_file_path='',  # Path to the prediction file
+#     gt_file_path='',  # Path to the ground truth file
+#     challenge_name='',  # BraTS-GLI, BraTS-SSA, BraTS-MEN, BraTS-PED, BraTS-MET
+#     output_path='',  # Path to save the results
+# )
 
 
 # Example 2: Get lesion-wise results for a folder of predictions and ground truths
@@ -23,9 +23,9 @@ get_lesion_wise_results(
 #     - BraTS_MET_00002_seg.nii.gz
 #     - ...
 
-pred_folder_path = ''  # Path to the folder containing the predictions
-gt_folder_path = ''  # Path to the folder containing the ground truths
-output_path = ''  # Path to save the results
+pred_folder_path = '/home/melandur/Downloads/evaluate_mets_mvp_1/pred/all'  # Path to the folder containing the predictions
+gt_folder_path = '/home/melandur/Downloads/evaluate_mets_mvp_1/gt/all'  # Path to the folder containing the ground truths
+output_path = '/home/melandur/Downloads/'  # Path to save the results
 
 case_names = [file_name.split('.')[0] for file_name in os.listdir(gt_folder_path)]
 
@@ -51,9 +51,10 @@ for case_name in case_names:
     )
 
     results_df.insert(0, 'Case_Name', case_name)
+    output_file_path = os.path.join(output_path, 'brats_metrics_results.csv')
     results_df.to_csv(
-        os.path.join(output_path, 'brats_metrics_results.csv'),
-        header=not os.path.exists(output_path),
+        output_file_path,
+        header=not os.path.exists(output_file_path),
         mode='a',
         index=False,
     )
