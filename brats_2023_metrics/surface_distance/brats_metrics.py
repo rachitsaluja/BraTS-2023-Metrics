@@ -43,7 +43,7 @@ def get_challenge_parameters(challenge_name: str) -> (int, int):
 
     if challenge_name == 'BraTS-MET':
         dilation_factor = 1
-        lesion_volume_thresh = 0
+        lesion_volume_thresh = 2
         return dilation_factor, lesion_volume_thresh
 
     raise ValueError('Supported challenge names are: BraTS-GLI, BraTS-SSA, BraTS-MEN, BraTS-PED, BraTS-MET')
