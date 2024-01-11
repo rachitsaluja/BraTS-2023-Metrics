@@ -43,7 +43,7 @@ def get_challenge_parameters(challenge_name: str) -> (int, int):
 
     if challenge_name == 'BraTS-MET':
         dilation_factor = 1
-        lesion_volume_thresh = 2
+        lesion_volume_thresh = 0
         return dilation_factor, lesion_volume_thresh
 
     raise ValueError('Supported challenge names are: BraTS-GLI, BraTS-SSA, BraTS-MEN, BraTS-PED, BraTS-MET')
@@ -83,17 +83,17 @@ def get_tissue_wise_mask(array: np.array, tissue_type: str) -> np.array:
     """
 
     if tissue_type == 'WT':
-        np.place(array, (array != 1) & (array != 2), 0)
+        np.place(array, (array != 1) & (array != 2) & (array != 3), 0)
         np.place(array, (array > 0), 1)
         return array
 
     if tissue_type == 'TC':
-        np.place(array, (array != 2), 0)
+        np.place(array, (array != 1) & (array != 3), 0)
         np.place(array, (array > 0), 1)
         return array
 
     if tissue_type == 'ET':
-        np.place(array, (array != 1), 0)
+        np.place(array, (array != 3), 0)
         np.place(array, (array > 0), 1)
         return array
 
